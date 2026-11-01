@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.6.9
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    name: Test — ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Установка системных зависимостей (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+              xvfb xclip xdotool libnotify-bin \
+              python3-tk \
+              libgirepository1.0-dev gir1.2-appindicator3-0.1 libappindicator3-1 \
+              python3-gi python3-gi-cairo
+
+      - name: Установка Python-зависимостей (Linux)
+        if: runner.os == 'Linux'
+        run: pip install -r requirements-linux.txt
+
+      - name: Установка Python-зависимостей (Windows)
+        if: runner.os == 'Windows'
+        run: pip install -r requirements-windows.txt
+
+      - name: Smoke-import
+        run: python -c "import platform_layer; print('platform =', platform_layer.PLATFORM)"
+
+      - name: Pytest
+        if: runner.os == 'Linux'
+        run: xvfb-run -a pytest -q
+
+      - name: Pytest
+        if: runner.os == 'Windows'
+        run: pytest -q

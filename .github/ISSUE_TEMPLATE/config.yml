@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Обсуждения
+    url: https://github.com/OWNER/Fixup2X/discussions
+    about: Вопросы, идеи и общие обсуждения
+  - name: 🔒 Сообщить об уязвимости
+    url: https://github.com/OWNER/Fixup2X/security/advisories/new
+    about: Приватный отчёт об уязвимости (не через issue)
